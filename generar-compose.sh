@@ -41,3 +41,5 @@ networks:
       driver: default
       config:
         - subnet: 172.25.125.0/24" >> $1
+
+echo "Docker compose con $2 clientes generado correctamente en $1"
