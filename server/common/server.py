@@ -9,7 +9,6 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._keep_running = True
-        self._server_socket_open = True
 
     def run(self):
         """
@@ -24,8 +23,8 @@ class Server:
             client_sock = self.__accept_new_connection()
             if client_sock is not None:
                 self.__handle_client_connection(client_sock)
-
-        self.__cleanup()
+        
+        logging.info('action: stop_server | result: success')
 
     def __handle_client_connection(self, client_sock):
         """
@@ -56,9 +55,6 @@ class Server:
 
         # Connection arrived
         logging.info('action: accept_connections | result: in_progress')
-        if not self._server_socket_open:
-            return None
-        
         try:
             c, addr = self._server_socket.accept()
             logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
@@ -75,14 +71,4 @@ class Server:
         self._keep_running = False
         self._server_socket.close()
         logging.info('action: close_server_socket | result: success')
-
-    def __cleanup(self):
-        """
-        Cleanup resources
-        """
-        if self._server_socket_open:
-            self._server_socket.close()
-            self._server_socket_open = False
-            logging.info('action: close_server_socket | result: success')
-
-        logging.info('action: stop_server | result: success')
+        
