@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 from configparser import ConfigParser
-from signal import signal
 from common.server import Server
 import logging
 import os
+import signal
 
 
 def initialize_config():

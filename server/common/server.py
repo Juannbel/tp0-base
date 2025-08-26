@@ -67,7 +67,7 @@ class Server:
             logging.error(f'action: accept_connections | result: fail | error: {e}')
             return None
 
-    def stop(self):
+    def stop(self, signum, frame):
         """
         Stop the server gracefully
         """
