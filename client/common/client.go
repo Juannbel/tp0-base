@@ -23,13 +23,17 @@ type ClientConfig struct {
 type Client struct {
 	config ClientConfig
 	conn   net.Conn
+	keepRunning bool
+	stopChannel chan struct{}
 }
 
 // NewClient Initializes a new client receiving the configuration
 // as a parameter
 func NewClient(config ClientConfig) *Client {
 	client := &Client{
-		config: config,
+		config:     config,
+		keepRunning: true,
+		stopChannel: make(chan struct{}),
 	}
 	return client
 }
@@ -52,9 +56,11 @@ func (c *Client) createClientSocket() error {
 
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
+	defer c.cleanup()
+	
 	// There is an autoincremental msgID to identify every message sent
 	// Messages if the message amount threshold has not been surpassed
-	for msgID := 1; msgID <= c.config.LoopAmount; msgID++ {
+	for msgID := 1; msgID <= c.config.LoopAmount && c.keepRunning; msgID++ {
 		// Create the connection the server in every loop iteration. Send an
 		c.createClientSocket()
 
@@ -81,9 +87,37 @@ func (c *Client) StartClientLoop() {
 			msg,
 		)
 
-		// Wait a time between sending one message and the next one
-		time.Sleep(c.config.LoopPeriod)
-
+		select {
+			// Wait a time between sending one message and the next one
+			case <- time.After(c.config.LoopPeriod):
+			case <- c.stopChannel: // el keepRunning en false lo saca del loop
+				continue
+		}
 	}
+
+	if !c.keepRunning {
+		return
+	}
+
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
+	c.Stop()
+}
+
+func (c *Client) Stop() {
+	if c.keepRunning {
+		c.keepRunning = false
+		close(c.stopChannel)
+		log.Infof("action: client_stopped | result: success | client_id: %v", c.config.ID)
+	} else {
+		log.Fatalf("action: client_stop | result: fail | client_id: %v | error: client_already_stopped", c.config.ID)
+	}
+}
+
+func (c *Client) cleanup() {
+	if c.conn != nil {
+		c.conn.Close()
+		log.Infof("action: client_connection_closed | result: success | client_id: %v", c.config.ID)
+	}
+
+	log.Infof("action: client_cleanup | result: success | client_id: %v", c.config.ID)
 }
