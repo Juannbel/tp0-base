@@ -178,3 +178,16 @@ Se espera que se redacte una sección del README en donde se indique cómo ejecu
 Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/tp0-tests) de caja negra. Se exige que la resolución de los ejercicios pase tales pruebas, o en su defecto que las discrepancias sean justificadas y discutidas con los docentes antes del día de la entrega. El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación. Respetar las entradas de log planteadas en los ejercicios, pues son las que se chequean en cada uno de los tests.
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
+
+# Ejecución y explicación resumida de soluciones
+
+## Ejercicio 1
+
+Para este ejercicio agregué el script `generar-compose.sh`, el mismo genera un archivo de Docker Compose con una cantidad de clientes configurable. Decidí mantenerlo simple, con todo lo necesario en el mismo script de bash, el mismo genera el archivo necesario si es que no existe, o lo pisa si ya existía, agrega lo referente al servicio del server, y luego por cada cliente pedido, un servicio de cliente con su respectivo id, finalmente se agrega la definición de la red para conectarlos.
+
+Para ejecutar este script se debe llamar de la siguiente manera:
+```bash
+./generar-compose.sh <nombre-archivo-salida> <cantidad-cliente>
+```
+
+En caso de necesitar cambiar variables de entorno, volumenes, etc, simplemente se puede editar la definición que se usa para los clientes y volver a correr el script, generando un nuevo Docker Compose.
