@@ -195,3 +195,7 @@ En caso de necesitar cambiar variables de entorno, volumenes, etc, simplemente s
 ## Ejercicio 2
 
 Para que no sea necesario reconstruir las imagenes de Docker al hacer cambios en la configuración, empecé por hacer un bind mount de los mismos en la ubicación en que se espera, de esta forma, el contenedor siempre está actualizado con la última versión del archivo sin necesidad de volver a hacer un build. Luego de eso, agregué ambos archivos de configuración en el `.dockerignore`, para que al momento de correr un contenedor, docker ignore los cambios sobre esos archivos, que de otra forma llevarian a hacer un nuevo build del contenedor.
+
+## Ejercicio 3
+
+Para realizar la validación del servidor con el script `validar-echo-server.sh` usando `netcat`, sin necesidad de ser instalado en la máquina host, lo que hice fue correr un contenedor temporal, que se borra luego de usado (`docker run --rm`). El mismo lo conecto a la red que se genera con el Docker Compose (`tp0_testing_net`), con lo cual no hace falta exponer ningun puerto. La imagen que elegí usar en este caso es una de las mas livianas que encontré que contaba con netcat, `busybox`. Lo único que hago es entonces enviar un mensaje al servidor (`echo $MENSAJE | nc $ADDR_SERVIDOR`), y verifico que la salida sea igual al mensaje enviado, indicando que funciona correctamente, en cualquier otro caso, muestra que el test falló.
