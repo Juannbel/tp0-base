@@ -191,3 +191,7 @@ Para ejecutar este script se debe llamar de la siguiente manera:
 ```
 
 En caso de necesitar cambiar variables de entorno, volumenes, etc, simplemente se puede editar la definición que se usa para los clientes y volver a correr el script, generando un nuevo Docker Compose.
+
+## Ejercicio 2
+
+Para que no sea necesario reconstruir las imagenes de Docker al hacer cambios en la configuración, empecé por hacer un bind mount de los mismos en la ubicación en que se espera, de esta forma, el contenedor siempre está actualizado con la última versión del archivo sin necesidad de volver a hacer un build. Luego de eso, agregué ambos archivos de configuración en el `.dockerignore`, para que al momento de correr un contenedor, docker ignore los cambios sobre esos archivos, que de otra forma llevarian a hacer un nuevo build del contenedor.
