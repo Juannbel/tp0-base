@@ -1,5 +1,11 @@
 #!/bin/bash
 
+DOCUMENTOS=(19782345 29182342 46782642 42783001 22374590)
+NOMBRES=("Juan" "Maria" "Pedro" "Ana" "Luis")
+APELLIDOS=("Perez" "Gomez" "Lopez" "Martinez" "Hernandez")
+NACIMIENTO=("2000-01-01" "1999-05-12" "1998-07-23" "1997-11-30" "1996-03-15")
+NUMEROS=("6789" "9321" "8923" "4987" "7891")
+
 if [ $# -ne 2 ]; then
     echo "Uso: $0 <nombre_archivo_salida> <cantidad_clientes>"
     exit 1
@@ -28,6 +34,11 @@ for i in $(seq 1 $2); do
     entrypoint: /client
     environment:
       - CLI_ID=$i
+      - NOMBRE=${NOMBRES[$i-1]}
+      - APELLIDO=${APELLIDOS[$i-1]}
+      - DOCUMENTO=${DOCUMENTOS[$i-1]}
+      - NACIMIENTO=${NACIMIENTO[$i-1]}
+      - NUMERO=${NUMEROS[$i-1]}
     volumes:
       - ./client/config.yaml:/config.yaml
     networks:
