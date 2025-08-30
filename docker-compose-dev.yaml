@@ -18,13 +18,9 @@ services:
     entrypoint: /client
     environment:
       - CLI_ID=1
-      - NOMBRE=Juan
-      - APELLIDO=Perez
-      - DOCUMENTO=19782345
-      - NACIMIENTO=2000-01-01
-      - NUMERO=6789
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/agency-1.csv:/agency.csv
     networks:
       - testing_net
     depends_on:
@@ -36,13 +32,9 @@ services:
     entrypoint: /client
     environment:
       - CLI_ID=2
-      - NOMBRE=Maria
-      - APELLIDO=Gomez
-      - DOCUMENTO=29182342
-      - NACIMIENTO=1999-05-12
-      - NUMERO=9321
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/agency-2.csv:/agency.csv
     networks:
       - testing_net
     depends_on:
@@ -54,13 +46,9 @@ services:
     entrypoint: /client
     environment:
       - CLI_ID=3
-      - NOMBRE=Pedro
-      - APELLIDO=Lopez
-      - DOCUMENTO=46782642
-      - NACIMIENTO=1998-07-23
-      - NUMERO=8923
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/agency-3.csv:/agency.csv
     networks:
       - testing_net
     depends_on:
@@ -72,13 +60,9 @@ services:
     entrypoint: /client
     environment:
       - CLI_ID=4
-      - NOMBRE=Ana
-      - APELLIDO=Martinez
-      - DOCUMENTO=42783001
-      - NACIMIENTO=1997-11-30
-      - NUMERO=4987
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/agency-4.csv:/agency.csv
     networks:
       - testing_net
     depends_on:
@@ -90,13 +74,9 @@ services:
     entrypoint: /client
     environment:
       - CLI_ID=5
-      - NOMBRE=Luis
-      - APELLIDO=Hernandez
-      - DOCUMENTO=22374590
-      - NACIMIENTO=1996-03-15
-      - NUMERO=7891
     volumes:
       - ./client/config.yaml:/config.yaml
+      - ./.data/agency-5.csv:/agency.csv
     networks:
       - testing_net
     depends_on:
