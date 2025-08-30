@@ -205,3 +205,16 @@ Para realizar la validación del servidor con el script `validar-echo-server.sh`
 Para que tanto el cliente como el servidor cierren de forma graceful al recibir la señal de SIGTERM configuré en ambos casos un handler para la misma.
 - En el caso del cliente (escrito en Go), el handler se ejecuta en una goroutine, que llama al método Stop del objeto cliente, en el mismo, se setea un flag interno para indicar que debe frenar, y se cierra un canal interno, la razón de usar este último es para manejar el caso en el que el stop llega en el momento que el cliente esta en el sleep, el cambio para lograr que reaccioné fue utilizar un select, que "espera" en dos canales, pudiendo salir por dos razones; o bien pasó el tiempo configurado, o se cerró el canal interno que indica que hay que parar. Una vez que sale del loop se realiza el cleanup cerrando la conexión con el servidor.
 - En el caso del servidor (escrito en python), utilizando la librería `signal` configuro un handler para SIGTERM, que llama a un metodo stop del server. Parecido al cliente, se setea un flag para detener el loop, y además, se cierra el "welcoming socket" (socket destinado a aceptar las conexiones), de esta forma evitamos que el servidor quede "colgado" aceptando una conexión. Con esto es suficiente pues los demás sockets que se van abriendo para comunicarse con los clientes siempre son cerrados en el `finally` del metodo `__handle_client_connection`.
+
+## Ejercicio 5
+
+Para este ejercicio, implementé un protocolo de comunicación sencillo que permita enviar una apuesta del lado del cliente al servidor, y recibir una confirmación.
+
+En el mismo, se envía un string que contiene la apuesta serializada de la siguiente forma:
+`<agencia>|<nombre>|<apellido>|<documento>|<nacimiento>|<numero>`
+
+Al inicio del mismo se agrega un byte indicando la longitud total del string (esto agrega la limitación de que el largo de la apuesta serializada no puede exceder los 255 caracteres, lo cual me parece razonable para los datos que se utilizan). Del lado del servidor entonces se empieza por leer un byte, y luego realiza una segunda lectura del socket con la longitud obtenida del primer byte.
+
+Si se recibió la apuesta correctamente, se envía un byte en 1 como confirmación, al recibir este byte el cliente sabe que la apuesta fue procesada correctamente y puede mostrar el log.
+
+Para evitar short reads y short writes implementé la clase `Socket` de ambos lados, usada por el protocolo, que se encarga de manejar las operaciones de lectura y escritura, llamando todas las veces que sea necesario a `recv` y `send` para completarlas.
