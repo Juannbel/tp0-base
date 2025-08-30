@@ -1,6 +1,9 @@
 package common
 
 import (
+	"bufio"
+	"os"
+
 	"github.com/op/go-logging"
 )
 
@@ -10,6 +13,7 @@ var log = logging.MustGetLogger("log")
 type ClientConfig struct {
 	ID            string
 	ServerAddress string
+	batchAmount   int
 }
 
 // Client Entity that encapsulates how
@@ -41,28 +45,58 @@ func NewClient(config ClientConfig) *Client {
 
 func (c *Client) Start() error {
 	defer c.cleanup()
-
-	bet := CreateBetFromEnv()
-	if err := c.proto.SendBet(bet); err != nil {
-		log.Errorf("action: send_bet | result: fail | client_id: %v | error: %v",
+	csvFile, err := os.Open("/agency.csv")
+	if err != nil {
+		log.Criticalf(
+			"action: open_csv | result: fail | client_id: %v | error: %v",
 			c.config.ID,
 			err,
 		)
 		return err
 	}
+	defer csvFile.Close()
 
-	if err := c.proto.WaitConfirmation(); err != nil {
-		log.Errorf("action: wait_confirmation | result: fail | client_id: %v | error: %v",
+	csvReader := bufio.NewScanner(csvFile)
+	batchGenerator := NewBatchGenerator(c.config.ID, c.config.batchAmount, csvReader, c.proto.GetBetSize)
+
+	for {
+		batch, err := batchGenerator.GetNextBatch()
+
+		if err != nil {
+			log.Errorf("action: read_batch | result: fail | client_id: %v | error: %v",
+				c.config.ID,
+				err,
+			)
+			return err
+		}
+
+		if len(batch) == 0 {
+			break
+		}
+
+		if err := c.proto.SendBatch(batch); err != nil {
+			log.Errorf("action: apuesta_enviada | result: fail | client_id: %v | error: %v",
+				c.config.ID,
+				err,
+			)
+			return err
+		}
+
+		if err := c.proto.WaitConfirmation(); err != nil {
+			log.Errorf("action: wait_confirmation | result: fail | client_id: %v | error: %v",
+				c.config.ID,
+				err,
+			)
+			return err
+		}
+		
+		log.Infof("action: apuesta_enviada | result: success | client_id: %v | cantidad: %v",
 			c.config.ID,
-			err,
+			len(batch),
 		)
-		return err
 	}
 
-	log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v",
-		bet.document,
-		bet.number,
-	)
+	c.proto.InformCompletion()
 	return nil
 }
 

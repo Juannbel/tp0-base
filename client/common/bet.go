@@ -1,7 +1,7 @@
 package common
 
 import (
-	"os"
+	"strings"
 )
 
 type Bet struct {
@@ -13,13 +13,17 @@ type Bet struct {
 	number string
 }
 
-func CreateBetFromEnv() *Bet {
+func CreateBetFromCSVLine(agency string, line string) *Bet {
+	parts := strings.Split(line, ",")
+	if len(parts) < 5 {
+		return nil
+	}
 	return &Bet{
-		agency:  os.Getenv("CLI_ID"),
-		firstName: os.Getenv("NOMBRE"),
-		lastName:  os.Getenv("APELLIDO"),
-		document: os.Getenv("DOCUMENTO"),
-		birthday: os.Getenv("NACIMIENTO"),
-		number:   os.Getenv("NUMERO"),
+		agency:  agency,
+		firstName: parts[0],
+		lastName:  parts[1],
+		document: parts[2],
+		birthday: parts[3],
+		number:   parts[4],
 	}
 }
