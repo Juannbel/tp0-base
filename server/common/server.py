@@ -4,13 +4,14 @@ from common.protocol import Protocol
 from common.utils import store_bets
 
 class Server:
-    def __init__(self, port, listen_backlog):
+    def __init__(self, port, listen_backlog, number_of_agencies):
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._keep_running = True
-
+        self._number_of_agencies = number_of_agencies
+    
     def run(self):
         """
         Dummy Server loop
