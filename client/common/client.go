@@ -89,9 +89,8 @@ func (c *Client) Start() error {
 			)
 			return err
 		}
-		
-		log.Infof("action: apuesta_enviada | result: success | client_id: %v | cantidad: %v",
-			c.config.ID,
+
+		log.Debugf("action: apuesta_enviada | result: success | cantidad: %v",
 			len(batch),
 		)
 	}

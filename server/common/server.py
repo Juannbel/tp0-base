@@ -39,11 +39,12 @@ class Server:
             while self._keep_running:
                 protocol = Protocol(client_sock)
                 bets_batch = protocol.receive_bets_batch()
-            
-                protocol.confirm_reception()
+                
                 if not bets_batch:
                     logging.debug('action: receive_bets_batches | result: success | info: no more bets')
                     break
+            
+                protocol.confirm_reception()
 
                 store_bets(bets_batch)
                 logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets_batch)}')
