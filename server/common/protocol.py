@@ -22,7 +22,8 @@ class Protocol:
 
     def receive_bets_batch(self):
         batch_length_be = self._sock.recvall(2)
-        batch_length = int.from_bytes(batch_length_be, byteorder='big')
+        batch_length = int.from_bytes(batch_length_be, byteorder='big', signed=False)
+        
         
         if batch_length == 0:
             return []

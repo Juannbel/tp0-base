@@ -218,3 +218,18 @@ Al inicio del mismo se agrega un byte indicando la longitud total del string (es
 Si se recibió la apuesta correctamente, se envía un byte en 1 como confirmación, al recibir este byte el cliente sabe que la apuesta fue procesada correctamente y puede mostrar el log.
 
 Para evitar short reads y short writes implementé la clase `Socket` de ambos lados, usada por el protocolo, que se encarga de manejar las operaciones de lectura y escritura, llamando todas las veces que sea necesario a `recv` y `send` para completarlas.
+
+## Ejercicio 6
+
+Para la implementación de este ejercicio partí del protocolo anterior, pero extendiéndolo para poder enviar múltiples apuestas por mensaje en forma de batch.
+Lo que hago en este caso es serializar todas las apuestas del mismo batch con la siguiente forma:
+`<apuesta1>#<apuesta2>#...#<apuestaN>`
+
+La serializacion de cada apuesta la mantuve igual que el ejercicio anterior:
+`<agencia>|<nombre>|<apellido>|<documento>|<nacimiento>|<numero>`
+
+Ahora, para que el servidor pueda saber cuánto leer del socket, en el protocolo envío primero dos bytes (en big-endian) que indican el tamaño total del batch de apuestas (serializado, incluyendo los separadores) como un unsigned short. En este caso decidí utilizar dos bytes ya que me da un rango de hasta 65535, como se aclara en la consigna, el batch completo serializado no puede superar los 8kB (8192 bytes).
+
+El servidor empieza por recibir los dos bytes que indican el tamaño del batch serializado, luego recibe el batch completo en una sola lectura, y lo deserializa para obtener las apuestas. Si no ocurre ningun error, se imprime el log con la cantidad de apuestas recibidas en ese batch, se envía una confirmación (enviando un byte en 1), y se espera el siguiente batch del cliente. De ocurrir algún error al momento de deserializar el batch, se envía un código de error (un byte en 2), y se cierra la conexión con ese cliente.
+
+El proceso de recibir batchs se repite hasta que al momento del leer el largo del batch se obtiene un 0 (unsigned short con los dos bytes en 0), indicando que no quedan mas apuestas. En este punto se cierra la conexión con el cliente y sigue esperando al siguiente.
