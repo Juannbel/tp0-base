@@ -22,7 +22,6 @@ class Server:
             client_sock = self.__accept_new_connection()
             if client_sock is not None:
                 self.__handle_client_connection(client_sock)
-                stored_bets += 1
 
         logging.info('action: stop_server | result: success')
 
