@@ -8,10 +8,16 @@ import (
 
 const _BET_SEPARATOR = "|"
 const _BATCH_SEPARATOR = "#"
+const _WINNER_SEPARATOR = "$"
 // entre cada campo va un "|" y un "#" al final
 const _SEPARATORS_PER_BET = 6
+
+const _SENDING_BETS = 0
 const _BATCH_RECEIVED = 1
-const _ERROR_CODE = 2
+const _REQUEST_RESULTS = 2
+const _RESULTS_NOT_READY = 3
+const _SENDING_RESULTS = 4
+const _ERROR_CODE = 5
 
 type Protocol struct {
 	socket *Socket
@@ -44,6 +50,48 @@ func (proto *Protocol) serialize(bet *Bet) string {
 		bet.agency, bet.firstName, bet.lastName, bet.document, bet.birthday, bet.number,
 	}, _BET_SEPARATOR)
 	return serialized
+}
+
+func (proto *Protocol) StartSendingBets() error {
+	buf := []byte{_SENDING_BETS}
+	return proto.socket.SendAll(buf)
+}
+
+func (proto *Protocol) RequestResults(agencyId int) ([]string, error) {
+	buf := []byte{_REQUEST_RESULTS, byte(agencyId)}
+	err := proto.socket.SendAll(buf)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := proto.socket.ReceiveAll(1)
+	if err != nil {
+		return nil, err
+	}
+
+	if response[0] == _RESULTS_NOT_READY {
+		return nil, nil
+	} else if response[0] == _SENDING_RESULTS {
+		return proto.receiveWinners()
+	} else {
+		return nil, fmt.Errorf("unexpected code received from server: %d", response[0])
+	}
+}
+
+func (proto *Protocol) receiveWinners() ([]string, error) {
+	winnersLenBe, err := proto.socket.ReceiveAll(2)
+	if err != nil {
+		return nil, err
+	}
+
+	winnersLen := binary.BigEndian.Uint16(winnersLenBe)
+
+	serializedWinners, err := proto.socket.ReceiveAll(int(winnersLen))
+	if err != nil {
+		return nil, err
+	}
+
+	return strings.Split(string(serializedWinners), _WINNER_SEPARATOR), nil
 }
 
 func (proto *Protocol) SendBatch(batch []*Bet) error {

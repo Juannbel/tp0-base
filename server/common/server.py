@@ -11,7 +11,8 @@ class Server:
         self._server_socket.listen(listen_backlog)
         self._keep_running = True
         self._number_of_agencies = number_of_agencies
-    
+        self._processed_agencies = set()
+        
     def run(self):
         """
         Dummy Server loop
@@ -29,15 +30,10 @@ class Server:
         logging.info('action: stop_server | result: success')
 
     def __handle_client_connection(self, client_sock):
-        """
-        Read bet from a specific client socket and closes the socket
-
-        If a problem arises in the communication with the client, the
-        client socket will also be closed
-        """
         try:
-            logging.debug('action: receive_bets_batches | result: in_progress')
             protocol = Protocol(client_sock)
+            
+            logging.debug('action: receive_bets_batches | result: in_progress')
 
             while self._keep_running:
                 bets_batch = protocol.receive_bets_batch()
