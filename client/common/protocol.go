@@ -11,6 +11,7 @@ const _BATCH_SEPARATOR = "#"
 // entre cada campo va un "|" y un "#" al final
 const _SEPARATORS_PER_BET = 6
 const _BATCH_RECEIVED = 1
+const _ERROR_CODE = 2
 
 type Protocol struct {
 	socket *Socket
@@ -68,9 +69,14 @@ func (proto *Protocol) WaitConfirmation() error {
 		return err
 	}
 
-	if buf[0] != _BATCH_RECEIVED {
-		return fmt.Errorf("confirmation not received")
+	if buf[0] == _ERROR_CODE {
+		return fmt.Errorf("error received from server")
 	}
+
+	if buf[0] != _BATCH_RECEIVED {
+		return fmt.Errorf("unexpected code received from server: %d", buf[0])
+	}
+
 	return nil
 }
 

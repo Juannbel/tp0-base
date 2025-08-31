@@ -3,8 +3,6 @@ import logging
 from common.protocol import Protocol
 from common.utils import store_bets
 
-NUMBER_OF_AGENCIES = 5
-
 class Server:
     def __init__(self, port, listen_backlog):
         # Initialize server socket
@@ -22,13 +20,10 @@ class Server:
         finishes, servers starts to accept new connections again
         """
         
-        stored_bets = 0
-
-        while self._keep_running and stored_bets < NUMBER_OF_AGENCIES:
+        while self._keep_running:
             client_sock = self.__accept_new_connection()
             if client_sock is not None:
                 self.__handle_client_connection(client_sock)
-                stored_bets += 1
 
         logging.info('action: stop_server | result: success')
 
@@ -40,15 +35,24 @@ class Server:
         client socket will also be closed
         """
         try:
-            protocol = Protocol(client_sock)
-            bet = protocol.receive_bet()
-            protocol.confirm_reception()
-
-            store_bets([bet])
-            logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
+            logging.debug('action: receive_bets_batches | result: in_progress')
+            while self._keep_running:
+                protocol = Protocol(client_sock)
+                bets_batch = protocol.receive_bets_batch()
             
+                protocol.confirm_reception()
+                if not bets_batch:
+                    logging.debug('action: receive_bets_batches | result: success | info: no more bets')
+                    break
+
+                store_bets(bets_batch)
+                logging.info(f'action: apuesta_recibida | result: success | cantidad: ${len(bets_batch)}')
+
         except OSError as e:
             logging.error(f'action: receive_message | result: fail | error: {e}')
+        except ValueError as e:
+            logging.error(f'action: receive_message | result: fail | error: {e}')
+            protocol.send_error_code()
         finally:
             protocol.close()
 
