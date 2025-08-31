@@ -13,7 +13,7 @@ class Protocol:
         self._sock = Socket(sock)
 
     def deserialize_bet(self, serialized):
-        parts = serialized.decode('utf-8').split(BET_SEPARATOR)
+        parts = serialized.split(BET_SEPARATOR)
         if len(parts) != BET_PARTS:
             return None
 

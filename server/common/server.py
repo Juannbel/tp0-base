@@ -46,7 +46,7 @@ class Server:
                     break
 
                 store_bets(bets_batch)
-                logging.info(f'action: apuesta_recibida | result: success | cantidad: ${len(bets_batch)}')
+                logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets_batch)}')
 
         except OSError as e:
             logging.error(f'action: receive_message | result: fail | error: {e}')

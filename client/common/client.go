@@ -13,7 +13,7 @@ var log = logging.MustGetLogger("log")
 type ClientConfig struct {
 	ID            string
 	ServerAddress string
-	batchAmount   int
+	BatchAmount   int
 }
 
 // Client Entity that encapsulates how
@@ -57,7 +57,7 @@ func (c *Client) Start() error {
 	defer csvFile.Close()
 
 	csvReader := bufio.NewScanner(csvFile)
-	batchGenerator := NewBatchGenerator(c.config.ID, c.config.batchAmount, csvReader, c.proto.GetBetSize)
+	batchGenerator := NewBatchGenerator(c.config.ID, c.config.BatchAmount, csvReader, c.proto.GetBetSize)
 
 	for {
 		batch, err := batchGenerator.GetNextBatch()
