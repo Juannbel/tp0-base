@@ -36,8 +36,9 @@ class Server:
         """
         try:
             logging.debug('action: receive_bets_batches | result: in_progress')
+            protocol = Protocol(client_sock)
+
             while self._keep_running:
-                protocol = Protocol(client_sock)
                 bets_batch = protocol.receive_bets_batch()
                 
                 if not bets_batch:
