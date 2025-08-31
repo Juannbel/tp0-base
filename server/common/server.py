@@ -3,8 +3,6 @@ import logging
 from common.protocol import Protocol
 from common.utils import store_bets
 
-NUMBER_OF_AGENCIES = 5
-
 class Server:
     def __init__(self, port, listen_backlog):
         # Initialize server socket
@@ -15,16 +13,12 @@ class Server:
 
     def run(self):
         """
-        Dummy Server loop
-
         Server that accept a new connections and establishes a
         communication with a client. After client with communucation
         finishes, servers starts to accept new connections again
         """
         
-        stored_bets = 0
-
-        while self._keep_running and stored_bets < NUMBER_OF_AGENCIES:
+        while self._keep_running:
             client_sock = self.__accept_new_connection()
             if client_sock is not None:
                 self.__handle_client_connection(client_sock)
