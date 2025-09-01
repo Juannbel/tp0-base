@@ -160,9 +160,7 @@ func (c *Client) waitWinners() error {
 			return err
 		}
 
-		if winners == nil {
-			log.Infof("action: consulta_ganadores | result: fail | info: no_winners_yet")
-		} else {
+		if winners != nil {
 			log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", len(winners))
 			for i, winner := range winners {
 				log.Debugf("action: consulta_ganadores | result: winner_%d | document: %v", i, winner)
