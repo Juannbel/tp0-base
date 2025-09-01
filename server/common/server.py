@@ -72,7 +72,6 @@ class Server:
         agency = protocol.receive_agency_id()
         if self._processed_agencies < self._number_of_agencies:
             protocol.send_results_not_ready()
-            logging.debug(f'action: request_results | result: fail | agency: {agency} | info: results not ready')
             return
 
         winners = self._winners.get(agency, [])
