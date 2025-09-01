@@ -79,12 +79,10 @@ func (proto *Protocol) RequestResults(agencyId int) ([]string, error) {
 }
 
 func (proto *Protocol) receiveWinners() ([]string, error) {
-	winnersLenBe, err := proto.socket.ReceiveAll(2)
+	winnersLen, err := proto.receiveUint16()
 	if err != nil {
 		return nil, err
 	}
-
-	winnersLen := binary.BigEndian.Uint16(winnersLenBe)
 
 	serializedWinners, err := proto.socket.ReceiveAll(int(winnersLen))
 	if err != nil {
@@ -112,23 +110,38 @@ func (proto *Protocol) SendBatch(batch []*Bet) error {
 }
 
 func (proto *Protocol) WaitConfirmation() error {
-	buf, err := proto.socket.ReceiveAll(1)
+	action, err := proto.receiveAction()
 	if err != nil {
 		return err
 	}
 
-	if buf[0] == _ERROR_CODE {
+	if action == _BATCH_RECEIVED {
+		return nil
+	} else if action == _ERROR_CODE {
 		return fmt.Errorf("error received from server")
+	} else {
+		return fmt.Errorf("unexpected code received from server: %d", action)
 	}
-
-	if buf[0] != _BATCH_RECEIVED {
-		return fmt.Errorf("unexpected code received from server: %d", buf[0])
-	}
-
-	return nil
 }
 
 func (proto *Protocol) InformCompletion() error {
 	buf := []byte{0, 0}
 	return proto.socket.SendAll(buf)
+}
+
+func (proto *Protocol) receiveAction() (byte, error) {
+	buf, err := proto.socket.ReceiveAll(1)
+	if err != nil {
+		return 0, err
+	}
+	return buf[0], nil
+}
+
+func (proto *Protocol) receiveUint16() (uint16, error) {
+	buf, err := proto.socket.ReceiveAll(2)
+	if err != nil {
+		return 0, err
+	}
+
+	return binary.BigEndian.Uint16(buf), nil
 }

@@ -1,7 +1,7 @@
 import socket
 import logging
-from common.protocol import Protocol
-from common.utils import store_bets
+from common.protocol import Protocol, SENDING_BETS, REQUEST_RESULTS
+from common.utils import store_bets, load_bets, has_won
 
 class Server:
     def __init__(self, port, listen_backlog, number_of_agencies):
@@ -11,7 +11,8 @@ class Server:
         self._server_socket.listen(listen_backlog)
         self._keep_running = True
         self._number_of_agencies = number_of_agencies
-        self._processed_agencies = set()
+        self._processed_agencies = 0
+        self._winners = {}
         
     def run(self):
         """
@@ -33,19 +34,15 @@ class Server:
         try:
             protocol = Protocol(client_sock)
             
-            logging.debug('action: receive_bets_batches | result: in_progress')
+            action = protocol.receive_action()
+            if action == SENDING_BETS:
+                self.__handle_sending_bets(protocol)
+                if self._processed_agencies == self._number_of_agencies:
+                    logging.debug('action: all_agencies_processed | result: success')
+                    self.__perform_raffle()
 
-            while self._keep_running:
-                bets_batch = protocol.receive_bets_batch()
-                
-                if not bets_batch:
-                    logging.debug('action: receive_bets_batches | result: success | info: no more bets')
-                    break
-            
-                protocol.confirm_reception()
-
-                store_bets(bets_batch)
-                logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets_batch)}')
+            elif action == REQUEST_RESULTS:
+                self.__handle_request_results(protocol)
 
         except OSError as e:
             logging.error(f'action: receive_message | result: fail | error: {e}')
@@ -54,6 +51,33 @@ class Server:
             protocol.send_error_code()
         finally:
             protocol.close()
+
+    def __handle_sending_bets(self, protocol):
+        logging.debug('action: receive_bets | result: in_progress')
+
+        while self._keep_running:
+            bets_batch = protocol.receive_bets_batch()
+
+            if not bets_batch:
+                logging.debug('action: receive_bets | result: success | info: no more bets')
+                self._processed_agencies += 1
+                return
+
+            protocol.confirm_reception()
+
+            store_bets(bets_batch)
+            logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets_batch)}')
+
+    def __handle_request_results(self, protocol):
+        agency = protocol.receive_agency_id()
+        if self._processed_agencies < self._number_of_agencies:
+            protocol.send_results_not_ready()
+            logging.debug(f'action: request_results | result: fail | agency: {agency} | info: results not ready')
+            return
+
+        winners = self._winners.get(agency, [])
+        protocol.send_winners(winners)
+        logging.debug(f'action: request_results | result: success | agency: {agency}')
 
     def __accept_new_connection(self):
         """
@@ -72,7 +96,17 @@ class Server:
         except OSError as e:
             logging.error(f'action: accept_connections | result: fail | error: {e}')
             return None
+    
+    def __perform_raffle(self):
+        for bet in load_bets():
+            if has_won(bet):
+                if bet.agency not in self._winners:
+                    self._winners[bet.agency] = []
 
+                self._winners[bet.agency].append(bet)
+        
+        logging.info('action: sorteo | result: success')
+                
     def stop(self, signum, frame):
         """
         Stop the server gracefully

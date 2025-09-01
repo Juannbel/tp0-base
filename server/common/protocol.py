@@ -4,9 +4,16 @@ from common.utils import Bet
 
 BET_SEPARATOR = '|'
 BATCH_SEPARATOR = '#'
+WINNER_SEPARATOR = '$'
+
 BET_PARTS = 6
+
+SENDING_BETS = b'\x00'
 BATCH_RECEIVED = b'\x01'
-ERROR_CODE = b'\x02'
+REQUEST_RESULTS = b'\x02'
+RESULTS_NOT_READY = b'\x03'
+SENDING_RESULTS = b'\x04'
+ERROR_CODE = b'\x05'
 
 class Protocol:
     def __init__(self, sock):
@@ -39,6 +46,26 @@ class Protocol:
             bets.append(bet)
             
         return bets
+    
+    def receive_action(self):
+        return self._sock.recvall(1)
+    
+    def receive_agency_id(self):
+        return int(self._sock.recvall(1))
+    
+    def send_winners(self, winners):
+        buf = b''
+        serialized_winners = WINNER_SEPARATOR.join(winners).encode('utf-8')
+        winners_len = len(serialized_winners)
+
+        buf += SENDING_RESULTS
+        buf += winners_len.to_bytes(2, byteorder='big')
+        buf += serialized_winners
+
+        self._sock.sendall(buf)
+
+    def send_results_not_ready(self):
+        self._sock.sendall(RESULTS_NOT_READY)
 
     def confirm_reception(self):
         self._sock.sendall(BATCH_RECEIVED)

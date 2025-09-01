@@ -153,7 +153,7 @@ func (c *Client) waitWinners() error {
 		winners, err := c.proto.RequestResults(agencyId)
 		if err != nil {
 			log.Criticalf(
-				"action: wait_winners | result: fail | client_id: %v | error: %v",
+				"action: consulta_ganadores | result: fail | client_id: %v | error: %v",
 				c.config.ID,
 				err,
 			)
@@ -161,10 +161,11 @@ func (c *Client) waitWinners() error {
 		}
 
 		if winners == nil {
-			log.Infof("action: wait_winners | result: no_winners_yet | client_id: %v", c.config.ID)
+			log.Infof("action: consulta_ganadores | result: fail | info: no_winners_yet")
 		} else {
+			log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", len(winners))
 			for i, winner := range winners {
-				log.Infof("action: wait_winners | result: winner_%d | document: %v", i, c.config.ID, winner)
+				log.Debugf("action: consulta_ganadores | result: winner_%d | document: %v", i, winner)
 			}
 			return nil
 		}
