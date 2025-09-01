@@ -51,8 +51,8 @@ class Protocol:
         return self._sock.recvall(1)
     
     def receive_agency_id(self):
-        return int(self._sock.recvall(1))
-    
+        return ord(self._sock.recvall(1))
+
     def send_winners(self, winners):
         buf = b''
         serialized_winners = WINNER_SEPARATOR.join(winners).encode('utf-8')

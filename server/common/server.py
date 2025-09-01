@@ -103,7 +103,7 @@ class Server:
                 if bet.agency not in self._winners:
                     self._winners[bet.agency] = []
 
-                self._winners[bet.agency].append(bet)
+                self._winners[bet.agency].append(bet.document)
         
         logging.info('action: sorteo | result: success')
                 

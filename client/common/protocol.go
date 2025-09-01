@@ -64,17 +64,17 @@ func (proto *Protocol) RequestResults(agencyId int) ([]string, error) {
 		return nil, err
 	}
 
-	response, err := proto.socket.ReceiveAll(1)
+	action, err := proto.receiveAction()
 	if err != nil {
 		return nil, err
 	}
 
-	if response[0] == _RESULTS_NOT_READY {
+	if action == _RESULTS_NOT_READY {
 		return nil, nil
-	} else if response[0] == _SENDING_RESULTS {
+	} else if action == _SENDING_RESULTS {
 		return proto.receiveWinners()
 	} else {
-		return nil, fmt.Errorf("unexpected code received from server: %d", response[0])
+		return nil, fmt.Errorf("unexpected code received from server: %d", action)
 	}
 }
 
@@ -129,12 +129,12 @@ func (proto *Protocol) InformCompletion() error {
 	return proto.socket.SendAll(buf)
 }
 
-func (proto *Protocol) receiveAction() (byte, error) {
+func (proto *Protocol) receiveAction() (int, error) {
 	buf, err := proto.socket.ReceiveAll(1)
 	if err != nil {
 		return 0, err
 	}
-	return buf[0], nil
+	return int(buf[0]), nil
 }
 
 func (proto *Protocol) receiveUint16() (uint16, error) {
