@@ -84,6 +84,11 @@ func (proto *Protocol) receiveWinners() ([]string, error) {
 		return nil, err
 	}
 
+	if winnersLen == 0 {
+		// This agency has no winners
+		return []string{}, nil
+	}
+
 	serializedWinners, err := proto.socket.ReceiveAll(int(winnersLen))
 	if err != nil {
 		return nil, err
