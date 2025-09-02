@@ -233,3 +233,25 @@ Ahora, para que el servidor pueda saber cuánto leer del socket, en el protocolo
 El servidor empieza por recibir los dos bytes que indican el tamaño del batch serializado, luego recibe el batch completo en una sola lectura, y lo deserializa para obtener las apuestas. Si no ocurre ningun error, se imprime el log con la cantidad de apuestas recibidas en ese batch, se envía una confirmación (enviando un byte en 1), y se espera el siguiente batch del cliente. De ocurrir algún error al momento de deserializar el batch, se envía un código de error (un byte en 2), y se cierra la conexión con ese cliente.
 
 El proceso de recibir batchs se repite hasta que al momento del leer el largo del batch se obtiene un 0 (unsigned short con los dos bytes en 0), indicando que no quedan mas apuestas. En este punto se cierra la conexión con el cliente y sigue esperando al siguiente.
+
+## Ejercicio 7
+
+Para este ejercicio reutilicé gran parte del ejercicio anterior, como la parte de enviar apuestas por batches de mantiene, toda esa parte del protocolo también. Los agregados en este caso son:
+- Nuevos códigos de operación/acción
+- Protocolo para enviar ganadores
+
+### Nuevos codigos de operación/acción
+
+Al conectarse un cliente al servidor, este debe empezar por enviar un código de 1 byte indicando que acción quiere realizar, ya sea enviar apuestas o consultar los ganadores de su agencia.
+
+En el primer caso, el servidor recibe el código (SENDING_BETS) y espera los sucesivos batches de apuestas, de la misma forma que lo hacia en el ejercicio anterior (largo del batch codificado, batch codificado, enviar confirmación (BATCH_RECEIVED), largo del batch codificado, batch codificado, etc), finalizando cuando el cliente envía un 0 como tamaño del batch, dando por finalizada la comunicación.
+
+En el segundo caso, luego del código que indica que se quieren consultar los ganadores (REQUEST_RESULTS), viene el numero de cliente/agencia que está consultando expresado en 1 byte (para que el servidor pueda enviarle los ganadores correspondientes). Al recibirlo, si el sorteo ya fue realizado, el servidor empieza enviando un código de un byte que indica que a continuación le enviará los ganadores (SENDING_RESULTS), y procede a enviar los ganadores con el protocolo que se explica a continuación. Si el sorteo aún no fue realizado, se envía un código de un byte indicando esto (RESULTS_NOT_READY), y se cierra la conexión para poder seguir atendiendo a otras agencias para lograr juntar todas las apuestas. En este segundo caso el cliente esperará 2 segundos y volverá a intentar consultar, dando tiempo a los demás para que envíen las apuestas.
+
+### Protocolo para enviar ganadores
+
+El protocolo para enviar ganadores tiene la misma forma que el protocolo para enviar apuestas, solo que en este caso todos estarán contenidos en un mensaje.
+El mensaje queda serializado de la siguiente forma:
+`<ganador1>$<ganador2>$...$<ganadorN>`
+
+El servidor primero incluirá un `uint16` que indica el tamaño total del mensaje serializado, y luego el mensaje.
