@@ -18,6 +18,7 @@ ERROR_CODE = b'\x05'
 class Protocol:
     def __init__(self, sock):
         self._sock = Socket(sock)
+        self._sock_closed = False
 
     def deserialize_bet(self, serialized):
         parts = serialized.split(BET_SEPARATOR)
@@ -74,4 +75,6 @@ class Protocol:
         self._sock.sendall(ERROR_CODE)
 
     def close(self):
-        self._sock.close()
+        if not self._sock_closed:
+            self._sock.close()
+            self._sock_closed = True
