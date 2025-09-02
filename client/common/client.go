@@ -160,7 +160,7 @@ func (c *Client) waitWinners() error {
 			return err
 		}
 
-		if winners != nil {ro incluirá un `uint16` que indica el tamaño total del mensaje serializado, y luego el mensaje.
+		if winners != nil {
 			log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", len(winners))
 			for i, winner := range winners {
 				log.Debugf("action: consulta_ganadores | result: winner_%d | document: %v", i, winner)
