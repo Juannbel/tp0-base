@@ -255,3 +255,15 @@ El mensaje queda serializado de la siguiente forma:
 `<dni_ganador1>$<dni_ganador2>$...$<dni_ganadorN>`
 
 El servidor primero incluirá un `uint16` (en big-endian) que indica el tamaño total del mensaje serializado, y luego el mensaje. Con esto el cliente puede empezar por leer el `uint16` y luego el mensaje completo, y haciendo uso de un split obtiene sus ganadores.
+
+## Ejercicio 8
+
+Este ejercicio introduce pocos cambios respecto al ejercicio anterior, buscando que el servidor pueda procesar mensajes de distintos clientes en paralelo. Para esto utilicé la clase `Thread` de la librería `threading`, lanzando un thread por cada cliente que se contecta.
+
+Como se aclara en la consigna, debido al [GIL (global interpreter lock)](https://wiki.python.org/moin/GlobalInterpreterLock), que protege el acceso a los objetos de python, solo un thread puede ejecutar código python al mismo tiempo, afectando fuertemente la performance de programas cpu-intensive que busquen hacer uso del paralelismo. Sin embargo, el GIL se libera al momento de realizar operaciones I/O (como lectura/escritura de archivos/sockets), por lo que para este caso de uso nos resulta beneficioso, cuando un hilo se bloquea leyendo de su socket, otro puede continuar con su ejecución, lo mismo pasa cuando se obtienen las apuestas y van a escribirse en el archivo, ese hilo libera el GIL permitiendo que otro hilo continúe su ejecución.
+
+Para manejar la concurrencia debido a que las funciones de `load_bets()` y `store_bets()` no son thread-safe, utilicé un `Lock` de la misma librería `threading`, compartido entre todos los hilos, para llamar a cualquiera de esas funciones, acceder a los resultados o la cantidad de agencias procesadas, es necesario adquirir el lock, de esta forma evitamos cualquier tipo de race condition.
+
+Como en todos los casos buscamos tener el lock tomado por la menor cantidad de tiempo posible, al momento de obtener los ganadores, se guarda una copia de la lista de ganadores de esa agencia y se libera, para evitar mantener el lock tomado durante toda la operación de enviar los ganadores al cliente.
+
+Finalmente, otra de las partes importantes de la implementación, es que guardamos por cada conexión (y por consecuente, thread que se lanza), una referencia a ese thread y su protocolo (que contiene el socket), por lo que en el caso de una señal `SIGTERM` podemos iterar sobre estos, cerrar los sockets (desbloqueando así los hilos) y joinearlos, teniendo así un graceful shutdown, liberando todos los recursos. Además, luego de que el hilo principal acepta una conexión (lanzando un thread), recorre estos hilos y verificando si aun están ejecución, o ya pueden ser joineados, liberando los recursos lo antes posible.

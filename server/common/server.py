@@ -135,6 +135,7 @@ class Server:
         for thread, protocol in to_remove:
             self._client_handlers.remove((thread, protocol))
             protocol.close()
+            thread.join()
 
     def stop(self, signum, frame):
         """
