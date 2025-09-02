@@ -142,9 +142,12 @@ class Server:
         """
         logging.info('action: stop_server | result: in_progress')
         for thread, protocol in self._client_handlers:
-            protocol.close()
-            thread.join()
-            
+            try:
+                protocol.close()
+                thread.join()
+            except Exception as e:
+                logging.error(f'action: stop_server | result: thread_exception | error: {e}')
+
         self._keep_running = False
         self._server_socket.close()
         logging.info('action: close_server_socket | result: success')
