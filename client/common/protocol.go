@@ -39,7 +39,7 @@ func (proto *Protocol) Close() error {
 	return proto.socket.Close()
 }
 
-func (proto *Protocol) serialize(bet *Bet) string {
+func (proto *Protocol) serializeBet(bet *Bet) string {
 	serialized := strings.Join([]string{
 		bet.agency, bet.firstName, bet.lastName, bet.document, bet.birthday, bet.number,
 	}, _BET_SEPARATOR)
@@ -49,7 +49,7 @@ func (proto *Protocol) serialize(bet *Bet) string {
 func (proto *Protocol) SendBatch(batch []*Bet) error {
 	serializedBets := make([]string, 0, len(batch))
 	for _, bet := range batch {
-		serializedBet := proto.serialize(bet)
+		serializedBet := proto.serializeBet(bet)
 		serializedBets = append(serializedBets, serializedBet)
 	}
 
