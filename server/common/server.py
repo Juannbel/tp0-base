@@ -13,9 +13,7 @@ class Server:
 
     def run(self):
         """
-        Server that accept a new connections and establishes a
-        communication with a client. After client with communucation
-        finishes, servers starts to accept new connections again
+        Server that accept a new connections and handles it
         """
         
         while self._keep_running:
@@ -53,7 +51,6 @@ class Server:
         Then connection created is printed and returned
         """
 
-        # Connection arrived
         logging.info('action: accept_connections | result: in_progress')
         try:
             c, addr = self._server_socket.accept()

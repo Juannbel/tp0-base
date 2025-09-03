@@ -39,6 +39,7 @@ func NewClient(config ClientConfig) *Client {
 	}
 }
 
+// Creates the bet, sends it, and wait for the confirmation
 func (c *Client) Start() error {
 	defer c.cleanup()
 

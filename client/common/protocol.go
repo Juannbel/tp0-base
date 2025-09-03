@@ -25,7 +25,7 @@ func (proto *Protocol) Close() error {
 	return proto.socket.Close()
 }
 
-func (proto *Protocol) serialize(bet *Bet) []byte {
+func (proto *Protocol) serializeBet(bet *Bet) []byte {
 	serialized := strings.Join([]string{
 		bet.agency, bet.firstName, bet.lastName, bet.document, bet.birthday, bet.number,
 	}, _SEPARATOR)
@@ -33,7 +33,7 @@ func (proto *Protocol) serialize(bet *Bet) []byte {
 }
 
 func (proto *Protocol) SendBet(bet *Bet) error {
-	serializedBet := proto.serialize(bet)
+	serializedBet := proto.serializeBet(bet)
 
 	if len(serializedBet) > _MAX_BET_SIZE {
 		return fmt.Errorf("serialized bet is too long")
@@ -51,7 +51,7 @@ func (proto *Protocol) WaitConfirmation() error {
 	if err != nil {
 		return err
 	}
-	if buf[0] != _BET_RECEIVED {
+	if int(buf[0]) != _BET_RECEIVED {
 		return fmt.Errorf("confirmation not received")
 	}
 	return nil
