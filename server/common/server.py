@@ -19,11 +19,9 @@ class Server:
 
     def run(self):
         """
-        Dummy Server loop
-
-        Server that accept a new connections and establishes a
-        communication with a client. After client with communucation
-        finishes, servers starts to accept new connections again
+        Server loop
+        
+        Accepts a connection, creates and starts a new thread to handle the client
         """
         
         while self._keep_running:
@@ -40,6 +38,9 @@ class Server:
         logging.info('action: stop_server | result: success')
 
     def __handle_client_connection(self, protocol):
+        """
+        Handles a client connection, identifying the action to take
+        """
         try:
             action = protocol.receive_action()
             if action == SENDING_BETS:
@@ -57,14 +58,18 @@ class Server:
             protocol.close()
 
     def __handle_sending_bets(self, protocol):
+        """
+        Handles a client that wants to send bets
+        If its the last agency, it will perform the raffle
+        """
         logging.debug('action: receive_bets | result: in_progress')
 
         while self._keep_running:
             bets_batch = protocol.receive_bets_batch()
 
             if not bets_batch:
+                logging.debug('action: receive_bets | result: success | info: no more bets')
                 with self._lock:
-                    logging.debug('action: receive_bets | result: success | info: no more bets')
                     self._processed_agencies += 1
                     
                     if self._processed_agencies == self._number_of_agencies:
@@ -81,6 +86,9 @@ class Server:
             logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets_batch)}')
 
     def __handle_request_results(self, protocol):
+        """
+        Handles a client that wants to request results of the raffle
+        """
         agency = protocol.receive_agency_id()
         winners = []
         ready = False
@@ -103,14 +111,12 @@ class Server:
         Then connection created is printed and returned
         """
 
-        # Connection arrived
         logging.info('action: accept_connections | result: in_progress')
         try:
             c, addr = self._server_socket.accept()
             logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
             return c
         except OSError as e:
-            logging.error(f'action: accept_connections | result: fail | error: {e}')
             return None
     
     def __perform_raffle(self):
@@ -127,6 +133,9 @@ class Server:
         logging.info('action: sorteo | result: success')
         
     def __reap_dead(self):
+        """
+        Reap dead threads, joining them
+        """
         to_remove = []
         for thread, protocol in self._client_handlers:
             if not thread.is_alive():
@@ -134,7 +143,6 @@ class Server:
                 
         for thread, protocol in to_remove:
             self._client_handlers.remove((thread, protocol))
-            protocol.close()
             thread.join()
 
     def stop(self, signum, frame):
