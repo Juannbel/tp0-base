@@ -41,6 +41,9 @@ func NewClient(config ClientConfig) *Client {
 	return client
 }
 
+// Opens the bets file, sending all the bets in batchs to the server
+// Waits for the confirmation before sending the next batch
+// When all bets are sent, it asks for the winners
 func (c *Client) Start() error {
 	defer c.cleanup()
 
@@ -53,6 +56,7 @@ func (c *Client) Start() error {
 	return c.waitWinners()
 }
 
+// Send all the bets, batch by batch
 func (c *Client) sendAllBets() error {
 	csvFile, err := os.Open("/agency.csv")
 	if err != nil {
@@ -105,6 +109,7 @@ func (c *Client) sendAllBets() error {
 	return nil
 }
 
+// Generate and send a single batch, returning the number of bets sent
 func (c *Client) generateAndSendBatch(batchGenerator *BatchGenerator) (int, error) {
 	batch, err := batchGenerator.GetNextBatch()
 	if err != nil {
@@ -130,6 +135,7 @@ func (c *Client) generateAndSendBatch(batchGenerator *BatchGenerator) (int, erro
 	return len(batch), nil
 }
 
+// Connects to the server given in the config
 func (c *Client) connectToServer() error {
 	proto, err := NewProtocol(c.config.ServerAddress)
 	if err != nil {
@@ -144,6 +150,7 @@ func (c *Client) connectToServer() error {
 	return nil
 }
 
+// Asks for the winners, retrying after some time if the raffle wasn't performed yet
 func (c *Client) waitWinners() error {
 	agencyId, _ := strconv.Atoi(c.config.ID)
 
@@ -177,6 +184,7 @@ func (c *Client) waitWinners() error {
 		}
 	}
 }
+
 func (c *Client) Stop() {
 	c.proto.Close()
 	log.Infof("action: client_stopped | result: success | client_id: %v", c.config.ID)

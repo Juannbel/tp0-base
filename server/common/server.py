@@ -16,11 +16,7 @@ class Server:
         
     def run(self):
         """
-        Dummy Server loop
-
-        Server that accept a new connections and establishes a
-        communication with a client. After client with communucation
-        finishes, servers starts to accept new connections again
+        Server loop that accepts a new connections and handles it until stopped
         """
         
         while self._keep_running:
@@ -31,6 +27,9 @@ class Server:
         logging.info('action: stop_server | result: success')
 
     def __handle_client_connection(self, client_sock):
+        """
+        Handles a client connection, identifying the action to take
+        """
         try:
             protocol = Protocol(client_sock)
             
@@ -53,6 +52,10 @@ class Server:
             protocol.close()
 
     def __handle_sending_bets(self, protocol):
+        """
+        Handles a client that wants to send bets
+        If its the last agency, it will perform the raffle
+        """
         logging.debug('action: receive_bets | result: in_progress')
 
         while self._keep_running:
@@ -69,6 +72,9 @@ class Server:
             logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets_batch)}')
 
     def __handle_request_results(self, protocol):
+        """
+        Handles a client that wants to request results of the raffle
+        """
         agency = protocol.receive_agency_id()
         if self._processed_agencies < self._number_of_agencies:
             protocol.send_results_not_ready()
@@ -86,7 +92,6 @@ class Server:
         Then connection created is printed and returned
         """
 
-        # Connection arrived
         logging.info('action: accept_connections | result: in_progress')
         try:
             c, addr = self._server_socket.accept()
@@ -97,6 +102,9 @@ class Server:
             return None
     
     def __perform_raffle(self):
+        """
+        Perform the raffle, loading all the bets and getting the winners
+        """
         for bet in load_bets():
             if has_won(bet):
                 if bet.agency not in self._winners:
