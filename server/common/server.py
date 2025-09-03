@@ -13,11 +13,7 @@ class Server:
 
     def run(self):
         """
-        Dummy Server loop
-
-        Server that accept a new connections and establishes a
-        communication with a client. After client with communucation
-        finishes, servers starts to accept new connections again
+        Server that accept a new connections and handles it
         """
         
         while self._keep_running:
@@ -29,7 +25,7 @@ class Server:
 
     def __handle_client_connection(self, client_sock):
         """
-        Read bet from a specific client socket and closes the socket
+        Read all the bets from the client, batch to batch
 
         If a problem arises in the communication with the client, the
         client socket will also be closed
@@ -66,7 +62,6 @@ class Server:
         Then connection created is printed and returned
         """
 
-        # Connection arrived
         logging.info('action: accept_connections | result: in_progress')
         try:
             c, addr = self._server_socket.accept()

@@ -43,6 +43,8 @@ func NewClient(config ClientConfig) *Client {
 	}
 }
 
+// Opens the bets file, sending all the bets in batchs to the server
+// Waits for the confirmation before sending the next batch
 func (c *Client) Start() error {
 	defer c.cleanup()
 	csvFile, err := os.Open("/agency.csv")
@@ -87,6 +89,7 @@ func (c *Client) Start() error {
 	return nil
 }
 
+// Generate and send a single batch, returning the number of bets sent
 func (c *Client) generateAndSendBatch(batchGenerator *BatchGenerator) (int, error) {
 	batch, err := batchGenerator.GetNextBatch()
 	if err != nil {

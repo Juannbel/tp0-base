@@ -21,9 +21,8 @@ class Protocol:
         return Bet(agency, first_name, last_name, document, birthday, number)
 
     def receive_bets_batch(self):
-        batch_length_be = self._sock.recvall(2)
-        batch_length = int.from_bytes(batch_length_be, byteorder='big', signed=False)
-        
+        batch_length = self.receive_uint16()
+
         if batch_length == 0:
             return []
         
@@ -39,6 +38,10 @@ class Protocol:
             bets.append(bet)
             
         return bets
+
+    def receive_uint16(self):
+        data = self._sock.recvall(2)
+        return int.from_bytes(data, byteorder='big', signed=False)
 
     def confirm_reception(self):
         self._sock.sendall(BATCH_RECEIVED)

@@ -54,33 +54,45 @@ func (proto *Protocol) SendBatch(batch []*Bet) error {
 	}
 
 	serializedBatch := strings.Join(serializedBets, _BATCH_SEPARATOR)
-	totalSize := len(serializedBatch)
+	totalSize := uint16(len(serializedBatch))
 
-	buf := make([]byte, 2+totalSize)
-	binary.BigEndian.PutUint16(buf[:2], uint16(totalSize))
-	copy(buf[2:], serializedBatch)
+	buf := proto.uint16ToBytes(totalSize)
+	buf = append(buf, serializedBatch...)
 
 	return proto.socket.SendAll(buf)
 }
 
 func (proto *Protocol) WaitConfirmation() error {
-	buf, err := proto.socket.ReceiveAll(1)
+	action, err := proto.receiveAction()
 	if err != nil {
 		return err
 	}
 
-	if buf[0] == _ERROR_CODE {
-		return fmt.Errorf("error received from server")
+	switch action {
+		case _BATCH_RECEIVED:
+			return nil
+		case _ERROR_CODE:
+			return fmt.Errorf("error received from server")
+		default:
+			return fmt.Errorf("unexpected code received from server: %d", action)
 	}
-
-	if buf[0] != _BATCH_RECEIVED {
-		return fmt.Errorf("unexpected code received from server: %d", buf[0])
-	}
-
-	return nil
 }
 
 func (proto *Protocol) InformCompletion() error {
 	buf := []byte{0, 0}
 	return proto.socket.SendAll(buf)
+}
+
+func (proto *Protocol) uint16ToBytes(value uint16) []byte {
+	buf := make([]byte, 2)
+	binary.BigEndian.PutUint16(buf, value)
+	return buf
+}
+
+func (proto *Protocol) receiveAction() (int, error) {
+	buf, err := proto.socket.ReceiveAll(1)
+	if err != nil {
+		return 0, err
+	}
+	return int(buf[0]), nil
 }
