@@ -187,6 +187,7 @@ func (c *Client) waitWinners() error {
 
 func (c *Client) Stop() {
 	c.proto.Close()
+	close(c.stopChannel)
 	log.Infof("action: client_stopped | result: success | client_id: %v", c.config.ID)
 }
 

@@ -123,4 +123,5 @@ func main() {
 	}()
 
 	client.Start()
+	log.Infof("action: exit | result: success | client_id: %v", clientConfig.ID)
 }
