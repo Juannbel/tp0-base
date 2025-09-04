@@ -45,7 +45,7 @@ func NewClient(config ClientConfig) *Client {
 
 // Opens the bets file, sending all the bets in batchs to the server
 // Waits for the confirmation before sending the next batch
-func (c *Client) Start() error {
+func (c *Client) Start() {
 	defer c.cleanup()
 	csvFile, err := os.Open("/agency.csv")
 	if err != nil {
@@ -54,7 +54,7 @@ func (c *Client) Start() error {
 			c.config.ID,
 			err,
 		)
-		return err
+		return
 	}
 	defer csvFile.Close()
 
@@ -64,7 +64,7 @@ func (c *Client) Start() error {
 	for {
 		sentBets, err := c.generateAndSendBatch(batchGenerator)
 		if err != nil {
-			return err
+			return
 		}
 
 		if sentBets == 0 {
@@ -77,7 +77,7 @@ func (c *Client) Start() error {
 				c.config.ID,
 				err,
 			)
-			return err
+			return
 		}
 
 		log.Debugf("action: apuesta_enviada | result: success | cantidad: %v",
@@ -86,7 +86,6 @@ func (c *Client) Start() error {
 	}
 
 	c.proto.InformCompletion()
-	return nil
 }
 
 // Generate and send a single batch, returning the number of bets sent
