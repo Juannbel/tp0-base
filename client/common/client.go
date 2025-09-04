@@ -40,7 +40,7 @@ func NewClient(config ClientConfig) *Client {
 }
 
 // Creates the bet, sends it, and wait for the confirmation
-func (c *Client) Start() error {
+func (c *Client) Start() {
 	defer c.cleanup()
 
 	bet := CreateBetFromEnv()
@@ -49,7 +49,7 @@ func (c *Client) Start() error {
 			c.config.ID,
 			err,
 		)
-		return err
+		return
 	}
 
 	if err := c.proto.WaitConfirmation(); err != nil {
@@ -57,14 +57,13 @@ func (c *Client) Start() error {
 			c.config.ID,
 			err,
 		)
-		return err
+		return
 	}
 
 	log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v",
 		bet.document,
 		bet.number,
 	)
-	return nil
 }
 
 func (c *Client) Stop() {

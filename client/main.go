@@ -109,7 +109,6 @@ func main() {
 	client := common.NewClient(clientConfig)
 	if client == nil {
 		log.Criticalf("action: create_client | result: fail | error: %s", err)
-		os.Exit(1)
 	}
 
 	signalChannel := make(chan os.Signal, 1)
@@ -121,7 +120,5 @@ func main() {
 		client.Stop()
 	}()
 
-	if err := client.Start(); err != nil {
-		os.Exit(1)
-	}
+	client.Start()
 }
