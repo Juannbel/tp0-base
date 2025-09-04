@@ -217,7 +217,19 @@ Al inicio del mismo se agrega un byte indicando la longitud total del string (es
 
 Si se recibió la apuesta correctamente, se envía un byte en 1 como confirmación, al recibir este byte el cliente sabe que la apuesta fue procesada correctamente y puede mostrar el log.
 
-Para evitar short reads y short writes implementé la clase `Socket` de ambos lados, usada por el protocolo, que se encarga de manejar las operaciones de lectura y escritura, llamando todas las veces que sea necesario a `recv` y `send` para completarlas.
+Para evitar short reads y short writes implementé la clase `Socket` de ambos lados, usada por el protocolo, que se encarga de manejar las operaciones de lectura y escritura, llamando todas las veces que sea necesario a `recv` y `send` para completarlas. En el caso del servidor escrito en python, no hizo falta implementar la lógica para el send, ya que el socket primitivo provee el método `sendall` que nos asegura que se enviará todo el buffer o lanzará un error. A continuación dejo la fracción de código correspondiente al método `recvall` implementado, los métodos del socket implementados en go tienen la misma lógica.
+
+```py
+def recvall(self, length):
+    data = b''
+    while len(data) < length:
+        packet = self._sock.recv(length - len(data))
+        if not packet:
+            break
+        data += packet
+        
+    return data
+```
 
 ## Ejercicio 6
 
