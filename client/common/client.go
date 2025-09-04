@@ -148,7 +148,14 @@ func (c *Client) waitWinners() error {
 	agencyId, _ := strconv.Atoi(c.config.ID)
 
 	for {
-		c.connectToServer()
+		if err := c.connectToServer(); err != nil {
+			log.Criticalf(
+				"action: connect | result: fail | client_id: %v | error: %v",
+				c.config.ID,
+				err,
+			)
+			return err
+		}
 
 		winners, err := c.proto.RequestResults(agencyId)
 		if err != nil {
