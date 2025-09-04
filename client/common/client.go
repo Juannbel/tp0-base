@@ -41,16 +41,16 @@ func NewClient(config ClientConfig) *Client {
 	return client
 }
 
-func (c *Client) Start() error {
+func (c *Client) Start() {
 	defer c.cleanup()
 
 	if err := c.sendAllBets(); err != nil {
-		return err
+		return
 	}
 
 	c.proto.Close()
 
-	return c.waitWinners()
+	c.waitWinners()
 }
 
 func (c *Client) sendAllBets() error {
