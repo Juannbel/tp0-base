@@ -44,16 +44,16 @@ func NewClient(config ClientConfig) *Client {
 // Opens the bets file, sending all the bets in batchs to the server
 // Waits for the confirmation before sending the next batch
 // When all bets are sent, it asks for the winners
-func (c *Client) Start() error {
+func (c *Client) Start() {
 	defer c.cleanup()
 
 	if err := c.sendAllBets(); err != nil {
-		return err
+		return
 	}
 
 	c.proto.Close()
 
-	return c.waitWinners()
+	c.waitWinners()
 }
 
 // Send all the bets, batch by batch
